@@ -21,7 +21,7 @@ async function carregarHistorico() {
     const usuarioId = Number(localStorage.getItem("usuario_id"));
 
 const resposta = await fetch(
-    `http://192.168.1.19:3000/despesas/${usuarioId}`
+    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
 );
 
 const despesasSalvas = await resposta.json();
@@ -45,7 +45,7 @@ async function filtrarPorData() {
     const usuarioId = Number(localStorage.getItem("usuario_id"));
 
 const resposta = await fetch(
-    `http://192.168.1.19:3000/despesas/${usuarioId}`
+    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
 );
 
 const despesasSalvas = await resposta.json();
@@ -244,7 +244,7 @@ if (formulario) {
       // Enviando a despesa para o backend
 try {
 
-    const resposta = await fetch("http://192.168.1.19:3000/despesas", {
+    const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/despesas", {
         method: "POST",
 
         headers: {
@@ -297,7 +297,7 @@ async function excluirDespesa(id) {
     const usuarioId = Number(localStorage.getItem("usuario_id"));
 
 const resposta = await fetch(
-    `http://192.168.1.19:3000/despesas/${usuarioId}`
+    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
 );
 
 const despesasSalvas = await resposta.json();
@@ -327,7 +327,7 @@ const despesa = despesasSalvas.find(function(despesa) {
     try {
 
     const resposta = await fetch(
-        `http://192.168.1.19:3000/despesas/${id}`,
+        `https://divisao-despesas-casa-api.onrender.com/despesas/${id}`,
         {
             method: "DELETE"
         }
@@ -399,7 +399,7 @@ if (formCadastro) {
 
         try {
 
-            const resposta = await fetch("http://192.168.1.19:3000/cadastro", {
+            const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/cadastro", {
                 method: "POST",
 
                 headers: {
@@ -454,7 +454,7 @@ if (formLogin) {
 
         try {
 
-            const resposta = await fetch("http://192.168.1.19:3000/login", {
+            const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/login", {
                 method: "POST",
 
                 headers: {
