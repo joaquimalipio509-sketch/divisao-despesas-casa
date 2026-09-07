@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Despesas - Divisão de Despesas</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main id="sistema">
+
+    <header>
+    <h1>Divisão de Despesas da Casa</h1>
+
+    <p>
+        Bem-vindo, <strong id="nomeUsuario"></strong>!
+    </p>
+
+    <p>
+        Calcule e divida as despesas entre os moradores.
+    </p>
+    </header>
+
+
+        <!-- CADASTRO DE DESPESAS -->
+
+        <section id="despesas">
+
+            <h2>Nova despesa</h2>
+
+            <form>
+
+                <label for="data">Data:</label>
+                <input type="date" id="data">
+
+
+                <label for="pessoas">Quantidade de pessoas:</label>
+                <input type="number" id="pessoas" min="1">
+
+
+                <h3>Despesas</h3>
+
+
+                <label for="aluguel">Aluguel:</label>
+                <input type="number" id="aluguel" step="0.01" min="0">
+
+
+                <label for="gas">Gás:</label>
+                <input type="number" id="gas" step="0.01" min="0">
+
+
+                <label for="energia">Energia:</label>
+                <input type="number" id="energia" step="0.01" min="0">
+
+
+                <label for="agua">Água:</label>
+                <input type="number" id="agua" step="0.01" min="0">
+
+
+                <button type="submit">
+                    Calcular despesas
+                </button>
+
+                <a href="historico.html">
+                <button type="button">Ver histórico</button>
+                </a>
+
+            </form>
+
+        </section>
+
+
+        <!-- RESULTADO -->
+
+        <section id="resultado">
+
+            <h2>Resultado</h2>
+
+            <p>
+                Total das despesas:
+                <strong>R$ 0,00</strong>
+            </p>
+
+            <p>
+                Valor por pessoa:
+                <strong>R$ 0,00</strong>
+            </p>
+
+        </section>
+
+        <!-- SAIR -->
+
+        <section>
+            <button id="logout">Sair</button>
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

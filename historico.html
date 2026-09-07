@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Histórico - Divisão de Despesas</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <main id="historicoPagina">
+
+        <header>
+            <h1>Histórico de Despesas</h1>
+
+            <p>
+                Veja todas as despesas cadastradas.
+            </p>
+        </header>
+
+        <section id="historico">
+
+            <h2>Despesas registradas</h2>
+
+            <div id="resumoHistorico">
+    <p>
+        Total geral:
+        <strong id="totalGeral">R$ 0,00</strong>
+    </p>
+
+    <p>
+        Registros:
+        <strong id="quantidadeRegistros">0</strong>
+    </p>
+
+    <p>
+        Média por despesa:
+        <strong id="mediaDespesas">R$ 0,00</strong>
+    </p>
+</div>
+
+<div id="filtroData">
+    <label for="dataFiltro">Filtrar por data:</label>
+
+    <input type="date" id="dataFiltro">
+
+    <button type="button" id="btnFiltrar">
+        Filtrar
+    </button>
+
+    <button type="button" id="btnLimparFiltro">
+        Limpar filtro
+    </button>
+</div>
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Pessoas</th>
+                        <th>Aluguel</th>
+                        <th>Gás</th>
+                        <th>Energia</th>
+                        <th>Água</th>
+                        <th>Total</th>
+                        <th>Por pessoa</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <!-- O JavaScript vai preencher aqui -->
+                </tbody>
+
+            </table>
+
+        </section>
+
+        <button id="voltarSistema">
+            Voltar para o sistema
+        </button>
+
+    </main>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
