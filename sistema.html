@@ -12,6 +12,8 @@
 
 <body>
 
+    <button id="btnConfiguracoes">⚙️ Configurações</button>
+
     <main id="sistema">
 
     <header>
@@ -24,6 +26,7 @@
     <p>
         Calcule e divida as despesas entre os moradores.
     </p>
+
     </header>
 
 
@@ -101,7 +104,77 @@
 
     </main>
 
+    <!-- MENU DE CONFIGURAÇÕES -->
+<div id="menuConfiguracoes" class="menu-configuracoes">
 
+    <div class="configuracoes-caixa">
+
+        <h2>⚙️ Configurações</h2>
+
+<div class="configuracao-item">
+    <h3>🌙 Tema</h3>
+    <p>Escolha entre o tema claro e escuro.</p>
+
+    <button id="btnTema">
+        🌙 Tema escuro
+    </button>
+    </div>
+
+    <div class="configuracao-item">
+    <h3>👤 Conta</h3>
+
+    <p>
+        Usuário conectado:
+        <strong id="usuarioConfiguracao"></strong>
+    </p>
+
+    <button id="btnSairConfiguracoes">
+        🚪 Sair da conta
+    </button>
+</div>
+
+    <div class="configuracao-item">
+    <h3>📊 Dados</h3>
+
+    <p>
+        Gerencie os dados das suas despesas.
+    </p>
+
+    <button id="btnExportarDados">
+        📤 Exportar dados
+    </button>
+
+    <button id="btnImportarDados">
+        📥 Importar dados
+    </button>
+
+    <button id="btnBaixarPDF">
+    📄 Baixar histórico em PDF
+    </button>
+
+    <button id="btnExcluirHistorico">
+        🗑️ Excluir histórico
+    </button>
+
+    <input
+        type="file"
+        id="arquivoImportacao"
+        accept=".json"
+        style="display: none;"
+    >
+</div>
+
+    <button id="btnFecharConfiguracoes">
+
+        Fechar
+    </button>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="script.js"></script>
 
 </body>
