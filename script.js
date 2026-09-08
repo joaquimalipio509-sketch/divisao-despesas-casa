@@ -18,13 +18,16 @@ async function carregarHistorico() {
         return;
     }
 
-    const usuarioId = Number(localStorage.getItem("usuario_id"));
+   const usuarioId =
+    Number(localStorage.getItem("usuario_id"));
 
-const resposta = await fetch(
-    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
-);
+const todasDespesas =
+    JSON.parse(localStorage.getItem("despesas")) || [];
 
-const despesasSalvas = await resposta.json();
+const despesasSalvas =
+    todasDespesas.filter(function(despesa) {
+        return despesa.usuario_id === usuarioId;
+    });
 
 // ==============================
 // FILTRAR POR DATA
@@ -42,13 +45,16 @@ async function filtrarPorData() {
         return;
     }
 
-    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const usuarioId =
+    Number(localStorage.getItem("usuario_id"));
 
-const resposta = await fetch(
-    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
-);
+const todasDespesas =
+    JSON.parse(localStorage.getItem("despesas")) || [];
 
-const despesasSalvas = await resposta.json();
+const despesasSalvas =
+    todasDespesas.filter(function(despesa) {
+        return despesa.usuario_id === usuarioId;
+    });
 
     const despesasFiltradas =
         despesasSalvas.filter(function(despesa) {
@@ -241,44 +247,35 @@ if (formulario) {
         `;
 
 
-      // Enviando a despesa para o backend
-try {
+      // ==============================
+// SALVAR DESPESA LOCALMENTE
+// ==============================
 
-    const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/despesas", {
-        method: "POST",
+const usuarioId =
+    Number(localStorage.getItem("usuario_id"));
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+const despesas =
+    JSON.parse(localStorage.getItem("despesas")) || [];
 
-        body: JSON.stringify({
-            usuario_id: Number(localStorage.getItem("usuario_id")),
-            data: data,
-            pessoas: pessoas,
-            aluguel: aluguel,
-            gas: gas,
-            energia: energia,
-            agua: agua,
-            total: total,
-            valor_por_pessoa: valorPorPessoa
-        })
-    });
+const novaDespesa = {
+    id: Date.now(),
+    usuario_id: usuarioId,
+    data: data,
+    pessoas: pessoas,
+    aluguel: aluguel,
+    gas: gas,
+    energia: energia,
+    agua: agua,
+    total: total,
+    valor_por_pessoa: valorPorPessoa
+};
 
-    const dados = await resposta.json();
+despesas.push(novaDespesa);
 
-    if (!resposta.ok) {
-        alert(dados.mensagem);
-        return;
-    }
-
-    alert(dados.mensagem);
-
-} catch (erro) {
-
-    alert("Não foi possível conectar ao servidor.");
-    console.error(erro);
-
-}
+localStorage.setItem(
+    "despesas",
+    JSON.stringify(despesas)
+);
 
     });
 
@@ -292,22 +289,20 @@ if (tabelaHistorico) {
 // EXCLUIR DESPESA
 // ==============================
 
-async function excluirDespesa(id) {
+function excluirDespesa(id) {
 
-    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const usuarioId =
+        Number(localStorage.getItem("usuario_id"));
 
-const resposta = await fetch(
-    `https://divisao-despesas-casa-api.onrender.com/despesas/${usuarioId}`
-);
+    // Pega todas as despesas salvas
+    const despesas =
+        JSON.parse(localStorage.getItem("despesas")) || [];
 
-const despesasSalvas = await resposta.json();
-
-console.log("ID recebido:", id);
-console.log("Despesas do banco:", despesasSalvas);
-
-const despesa = despesasSalvas.find(function(despesa) {
-    return despesa.id === id;
-});
+    // Procura a despesa do usuário
+    const despesa = despesas.find(function(despesa) {
+        return despesa.id === id &&
+               despesa.usuario_id === usuarioId;
+    });
 
     if (!despesa) {
         alert("Despesa não encontrada.");
@@ -324,32 +319,20 @@ const despesa = despesasSalvas.find(function(despesa) {
         return;
     }
 
-    try {
+    // Remove a despesa
+    const novasDespesas = despesas.filter(function(despesa) {
+        return despesa.id !== id;
+    });
 
-    const resposta = await fetch(
-        `https://divisao-despesas-casa-api.onrender.com/despesas/${id}`,
-        {
-            method: "DELETE"
-        }
+    // Salva novamente no localStorage
+    localStorage.setItem(
+        "despesas",
+        JSON.stringify(novasDespesas)
     );
 
-    const dados = await resposta.json();
-
-    if (!resposta.ok) {
-        alert(dados.mensagem);
-        return;
-    }
-
-    alert(dados.mensagem);
+    alert("Despesa excluída com sucesso!");
 
     location.reload();
-
-} catch (erro) {
-
-    alert("Não foi possível conectar ao servidor.");
-    console.error(erro);
-
-}
 }
 
 // ====================
@@ -379,7 +362,7 @@ const formCadastro =
 
 if (formCadastro) {
 
-    formCadastro.addEventListener("submit", async function(event) {
+    formCadastro.addEventListener("submit", function(event) {
 
         event.preventDefault();
 
@@ -397,38 +380,40 @@ if (formCadastro) {
             return;
         }
 
-        try {
+        // Pega os usuários já cadastrados
+        const usuarios =
+            JSON.parse(localStorage.getItem("usuarios")) || [];
 
-            const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/cadastro", {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    usuario: usuario,
-                    senha: senha
-                })
+        // Verifica se o usuário já existe
+        const usuarioExiste =
+            usuarios.find(function(usuarioSalvo) {
+                return usuarioSalvo.usuario === usuario;
             });
 
-            const dados = await resposta.json();
-
-            if (!resposta.ok) {
-                alert(dados.mensagem);
-                return;
-            }
-
-            alert(dados.mensagem);
-
-            window.location.href = "index.html";
-
-        } catch (erro) {
-
-            alert("Não foi possível conectar ao servidor.");
-            console.error(erro);
-
+        if (usuarioExiste) {
+            alert("Esse usuário já está cadastrado.");
+            return;
         }
+
+        // Cria o novo usuário
+        const novoUsuario = {
+            id: Date.now(),
+            usuario: usuario,
+            senha: senha
+        };
+
+        // Adiciona o usuário à lista
+        usuarios.push(novoUsuario);
+
+        // Salva no dispositivo
+        localStorage.setItem(
+            "usuarios",
+            JSON.stringify(usuarios)
+        );
+
+        alert("Cadastro realizado com sucesso!");
+
+        window.location.href = "index.html";
     });
 }
 
@@ -442,7 +427,7 @@ const formLogin =
 
 if (formLogin) {
 
-    formLogin.addEventListener("submit", async function(event) {
+    formLogin.addEventListener("submit", function(event) {
 
         event.preventDefault();
 
@@ -452,41 +437,31 @@ if (formLogin) {
         const senha =
             document.querySelector("#senha").value;
 
-        try {
+        // Pega os usuários cadastrados no dispositivo
+        const usuarios =
+            JSON.parse(localStorage.getItem("usuarios")) || [];
 
-            const resposta = await fetch("https://divisao-despesas-casa-api.onrender.com/login", {
-                method: "POST",
-
-                headers: {
-                    "Content-Type": "application/json"
-                },
-
-                body: JSON.stringify({
-                    usuario: usuario,
-                    senha: senha
-                })
+        // Procura o usuário
+        const usuarioEncontrado =
+            usuarios.find(function(usuarioSalvo) {
+                return usuarioSalvo.usuario === usuario &&
+                       usuarioSalvo.senha === senha;
             });
 
-            const dados = await resposta.json();
-
-            if (!resposta.ok) {
-                alert(dados.mensagem);
-                return;
-            }
-
-            localStorage.setItem("logado", "true");
-            localStorage.setItem("usuario_id", dados.id);
-
-            alert(dados.mensagem);
-
-            window.location.href = "sistema.html";
-
-        } catch (erro) {
-
-            alert("Não foi possível conectar ao servidor.");
-            console.error(erro);
-
+        // Verifica se encontrou
+        if (!usuarioEncontrado) {
+            alert("Usuário ou senha incorretos.");
+            return;
         }
+
+        // Salva quem está logado
+        localStorage.setItem("logado", "true");
+        localStorage.setItem(
+            "usuario_id",
+            usuarioEncontrado.id
+        );
+
+        window.location.href = "sistema.html";
     });
 }
 
@@ -501,6 +476,7 @@ if (botaoLogout) {
     botaoLogout.addEventListener("click", function() {
 
         localStorage.removeItem("logado");
+        localStorage.removeItem("usuario_id");
 
         window.location.href = "index.html";
 
