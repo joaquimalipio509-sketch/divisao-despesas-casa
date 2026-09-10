@@ -931,16 +931,6 @@ y = pdf.lastAutoTable.finalY + 15;
                 return total + Number(despesa.total);
             }, 0);
 
-        const totalPessoas =
-            minhasDespesas.reduce(function(total, despesa) {
-                return total + Number(despesa.pessoas);
-            }, 0);
-
-        const mediaPorPessoa =
-            totalPessoas > 0
-                ? totalGeral / totalPessoas
-                : 0;
-
         y += 10;
 
         if (y > 250) {
@@ -958,8 +948,6 @@ pdf.autoTable({
     startY: y,
     body: [
         ["Total geral", `R$ ${totalGeral.toFixed(2)}`],
-        ["Total de pessoas", String(totalPessoas)],
-        ["Média por pessoa", `R$ ${mediaPorPessoa.toFixed(2)}`]
     ],
     styles: {
         fontSize: 11,
