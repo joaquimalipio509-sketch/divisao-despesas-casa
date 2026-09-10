@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Dashboard - Divisão de Despesas</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+    <main id="dashboard">
+
+        <header>
+
+            <h1>Dashboard</h1>
+
+            <p>Visão geral das suas despesas</p>
+
+        </header>
+
+
+        <section id="resumoDashboard">
+
+            <div class="card-dashboard">
+
+                <h3>Total de despesas</h3>
+
+                <p id="totalDespesas">R$ 0,00</p>
+
+            </div>
+
+
+            <div class="card-dashboard">
+
+                <h3>Total de registros</h3>
+
+                <p id="quantidadeDespesas">0</p>
+
+            </div>
+
+
+            <div class="card-dashboard">
+
+                <h3>Média por pessoa</h3>
+
+                <p id="mediaPorPessoa">R$ 0,00</p>
+
+            </div>
+
+        </section>
+
+
+        <section class="grafico-dashboard">
+
+            <h2>Despesas por categoria</h2>
+
+            <canvas id="graficoCategorias"></canvas>
+
+        </section>
+
+
+        <section class="grafico-dashboard">
+
+            <h2>Despesas ao longo do tempo</h2>
+
+            <canvas id="graficoMensal"></canvas>
+
+        </section>
+
+
+        <button id="voltarSistema">
+
+            Voltar para o sistema
+
+        </button>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="dashboard.js"></script>
+
+</body>
+
+</html>
+

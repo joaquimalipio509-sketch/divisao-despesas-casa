@@ -990,3 +990,9 @@ pdf.save("historico-despesas.pdf");
         
     });
 }
+
+document.querySelector("#btnDashboard").addEventListener("click", function() {
+
+    window.location.href = "dashboard.html";
+
+});

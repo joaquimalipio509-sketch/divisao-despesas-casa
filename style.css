@@ -571,3 +571,81 @@ body.tema-escuro .configuracao-item {
 body.tema-escuro .configuracao-item p {
     color: #ccc;
 }
+
+/* ==============================
+   DASHBOARD
+   ============================== */
+
+#dashboard {
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+}
+
+#dashboard header {
+    text-align: center;
+}
+
+#resumoDashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card-dashboard {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.card-dashboard h3 {
+    margin-bottom: 10px;
+}
+
+.card-dashboard p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.grafico-dashboard {
+    background-color: white;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.grafico-dashboard h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#dashboard canvas {
+    max-height: 400px;
+}
+
+body.tema-escuro #dashboard .card-dashboard,
+body.tema-escuro #dashboard .grafico-dashboard {
+    background-color: #1e1e1e;
+    color: #f5f5f5;
+}
+
+@media (max-width: 700px) {
+
+    #resumoDashboard {
+        grid-template-columns: 1fr;
+    }
+
+    #dashboard {
+        width: 95%;
+    }
+
+    .grafico-dashboard {
+        padding: 15px;
+    }
+
+}
