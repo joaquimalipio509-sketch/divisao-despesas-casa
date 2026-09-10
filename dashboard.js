@@ -231,3 +231,9 @@ document.querySelector("#voltarSistema").addEventListener("click", function() {
     window.location.href = "sistema.html";
 
 });
+
+const temaSalvo = localStorage.getItem("tema");
+
+if (temaSalvo === "escuro") {
+    document.body.classList.add("tema-escuro");
+}
