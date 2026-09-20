@@ -752,7 +752,7 @@ if (btnExportarDados) {
 }
 
 // ==============================
-// IMPORTAR DADOS - CORRIGIDO
+// IMPORTAR DADOS - CORRIGIDO COM USUARIO_ID
 // ==============================
 
 const btnImportarDados =
@@ -770,35 +770,31 @@ if (btnImportarDados && arquivoImportacao) {
     arquivoImportacao.addEventListener("change", function() {
 
         const arquivo = arquivoImportacao.files[0];
-
-        if (!arquivo) {
-            return;
-        }
-
-        // 1. Valida se é JSON mesmo (WhatsApp às vezes renomeia)
-        if (!arquivo.name.toLowerCase().endsWith('.json') && arquivo.type!== 'application/json') {
-            // deixa passar mesmo assim, só avisa no console
-            console.log("Aviso: arquivo não termina com.json:", arquivo.name);
-        }
+        if (!arquivo) return;
 
         const leitor = new FileReader();
 
         leitor.onload = function(evento) {
-
             try {
-                // 2. CORREÇÃO PRINCIPAL: remove o BOM e espaços que o Android coloca
                 let texto = evento.target.result.replace(/^\uFEFF/, '').trim();
-
                 if (!texto) throw new Error("Arquivo vazio");
 
                 const despesasImportadas = JSON.parse(texto);
 
                 if (!Array.isArray(despesasImportadas)) {
-                    throw new Error("Formato inválido - esperava uma lista de despesas");
+                    throw new Error("Formato inválido");
+                }
+
+                // PEGA O ID DO USUÁRIO LOGADO AGORA
+                const usuarioIdAtual = Number(localStorage.getItem("usuario_id"));
+
+                if (!usuarioIdAtual) {
+                    alert("Você precisa estar logado para importar.");
+                    return;
                 }
 
                 const confirmar = confirm(
-                    `Encontradas ${despesasImportadas.length} despesas. Importar este arquivo substituirá o histórico atual. Deseja continuar?`
+                    `Encontradas ${despesasImportadas.length} despesas. Importar? Elas vão aparecer para o seu usuário atual.`
                 );
 
                 if (!confirmar) {
@@ -806,31 +802,38 @@ if (btnImportarDados && arquivoImportacao) {
                     return;
                 }
 
-                localStorage.setItem(
-                    "despesas",
-                    JSON.stringify(despesasImportadas)
-                );
+                // CORRIGE O usuario_id de todas as despesas importadas
+                const despesasCorrigidas = despesasImportadas.map(function(d) {
+                    return {
+                       ...d,
+                        id: d.id || Date.now() + Math.random(),
+                        usuario_id: usuarioIdAtual // força ser do usuário logado
+                    };
+                });
 
-                alert("Dados importados com sucesso!");
+                // MESCLA com as que já existem, em vez de apagar tudo
+                const despesasAtuais = JSON.parse(localStorage.getItem("despesas")) || [];
+                const todas = [...despesasAtuais,...despesasCorrigidas];
+
+                // Remove duplicadas pelo ID
+                const unicas = Array.from(new Map(todas.map(d => [d.id, d])).values());
+
+                localStorage.setItem("despesas", JSON.stringify(unicas));
+
+                alert(`Dados importados com sucesso! ${despesasCorrigidas.length} despesas adicionadas.`);
                 location.reload();
 
             } catch (erro) {
-                // 3. AGORA mostra o erro real pra você debugar
                 console.error(erro);
                 alert("Erro ao importar: " + erro.message);
                 arquivoImportacao.value = "";
             }
         };
 
-        leitor.onerror = function() {
-            alert("Erro ao ler o arquivo");
-            arquivoImportacao.value = "";
-        };
-
-        // 4. CORREÇÃO: força UTF-8 (resolve problema com ç, ã, R$)
         leitor.readAsText(arquivo, 'UTF-8');
     });
 }
+
 // ==============================
 // BAIXAR HISTÓRICO EM PDF
 // ==============================
