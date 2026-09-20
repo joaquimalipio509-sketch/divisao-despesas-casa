@@ -649,3 +649,60 @@ body.tema-escuro #dashboard .grafico-dashboard {
     }
 
 }
+
+/* =========================
+   MODAL BONITO - AZUL
+========================= */
+.modal-fundo {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9999; backdrop-filter: blur(4px);
+}
+.modal-caixa {
+  background: #fff;
+  padding: 28px; border-radius: 16px;
+  width: 90%; max-width: 380px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  text-align: center;
+  animation: subir .25s ease;
+  border-top: 5px solid #3498db;
+}
+.modal-caixa h3 { 
+  margin: 0 0 8px; 
+  font-size: 20px; 
+  color: #2f80ed;
+}
+.modal-caixa p { 
+  margin: 0 0 22px; 
+  color: #555;
+  line-height: 1.5; 
+  font-size: 15px;
+}
+.modal-botoes { display:flex; gap:10px; justify-content:center; }
+.modal-botoes button {
+  padding: 11px 22px; border-radius: 8px; border: none;
+  cursor: pointer; font-weight: bold; font-size: 14px;
+  transition: 0.2s;
+}
+#modalBtnOk { background: #3498db; color: white; }
+#modalBtnOk:hover { background: #2980b9; transform: scale(1.03); }
+#modalBtnCancelar { background: #f1f2f6; color: #333; }
+#modalBtnCancelar:hover { background: #dfe4ea; }
+
+#toast {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: #2f80ed; color: white;
+  padding: 12px 22px; border-radius: 30px;
+  opacity: 0; transition: .3s; z-index: 10000;
+  pointer-events: none; font-weight: bold;
+  box-shadow: 0 5px 15px rgba(47,128,237,0.4);
+}
+#toast.mostrar { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@keyframes subir { from{transform:translateY(20px); opacity:0} to{transform:translateY(0); opacity:1} }
+
+body.tema-escuro .modal-caixa { background: #1e1e1e; color: #f5f5f5; border-top-color: #2f80ed; }
+body.tema-escuro .modal-caixa p { color: #ccc; }
+body.tema-escuro #modalBtnCancelar { background: #2b2b2b; color: #fff; }

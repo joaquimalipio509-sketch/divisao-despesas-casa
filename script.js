@@ -1,5 +1,5 @@
 // ==============================
-// SISTEMA DE DESPESAS
+// SISTEMA DE DESPESAS - CORRIGIDO
 // ==============================
 
 const formulario = document.querySelector("#despesas form");
@@ -8,65 +8,95 @@ const dataFiltro = document.querySelector("#dataFiltro");
 const btnFiltrar = document.querySelector("#btnFiltrar");
 const btnLimparFiltro = document.querySelector("#btnLimparFiltro");
 
-// ==============================
-// CARREGAR HISTÓRICO
-// ==============================
+function mostrarAviso(texto, titulo = "Aviso") {
+  const modal = document.getElementById("modalAviso");
+  if(!modal) { alert(titulo + ": " + texto); return; }
+  document.getElementById("modalTitulo").textContent = titulo;
+  document.getElementById("modalTexto").textContent = texto;
+  document.getElementById("modalBtnCancelar").style.display = "none";
+  modal.style.display = "flex";
+  document.getElementById("modalBtnOk").onclick = () => {
+    modal.style.display = "none";
+  };
+}
+
+function mostrarConfirmacao(texto, titulo = "Confirmação") {
+  return new Promise((resolve) => {
+    document.getElementById("modalTitulo").textContent = titulo;
+    document.getElementById("modalTexto").textContent = texto;
+    document.getElementById("modalBtnCancelar").style.display = "block";
+    document.getElementById("modalAviso").style.display = "flex";
+    document.getElementById("modalBtnOk").onclick = () => {
+      document.getElementById("modalAviso").style.display = "none";
+      resolve(true);
+    };
+    document.getElementById("modalBtnCancelar").onclick = () => {
+      document.getElementById("modalAviso").style.display = "none";
+      resolve(false);
+    };
+  });
+}
+
+function mostrarToast(texto) {
+  const toast = document.getElementById("toast");
+  if(!toast){ console.log(texto); return; }
+  toast.textContent = texto;
+  toast.classList.add("mostrar");
+  setTimeout(() => toast.classList.remove("mostrar"), 3000);
+}
 
 async function carregarHistorico() {
+    if (!tabelaHistorico) return;
 
-    if (!tabelaHistorico) {
-        return;
-    }
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const todasDespesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const despesasSalvas = todasDespesas.filter(d => d.usuario_id === usuarioId);
 
-   const usuarioId =
-    Number(localStorage.getItem("usuario_id"));
+    const totalGeral = despesasSalvas.reduce((total, d) => total + d.total, 0);
+    const quantidadeRegistros = despesasSalvas.length;
+    const mediaDespesas = quantidadeRegistros > 0? totalGeral / quantidadeRegistros : 0;
 
-const todasDespesas =
-    JSON.parse(localStorage.getItem("despesas")) || [];
+    const elTotal = document.querySelector("#totalGeral");
+    if(elTotal) elTotal.textContent = `R$ ${totalGeral.toFixed(2)}`;
+    const elQtd = document.querySelector("#quantidadeRegistros");
+    if(elQtd) elQtd.textContent = quantidadeRegistros;
+    const elMedia = document.querySelector("#mediaDespesas");
+    if(elMedia) elMedia.textContent = `R$ ${mediaDespesas.toFixed(2)}`;
 
-const despesasSalvas =
-    todasDespesas.filter(function(despesa) {
-        return despesa.usuario_id === usuarioId;
+    tabelaHistorico.innerHTML = "";
+    despesasSalvas.forEach(function(despesa) {
+        const linha = document.createElement("tr");
+        linha.innerHTML = `
+            <td>${despesa.data}</td>
+            <td>${despesa.pessoas}</td>
+            <td>R$ ${despesa.aluguel.toFixed(2)}</td>
+            <td>R$ ${despesa.gas.toFixed(2)}</td>
+            <td>R$ ${despesa.energia.toFixed(2)}</td>
+            <td>R$ ${despesa.agua.toFixed(2)}</td>
+            <td>R$ ${despesa.total.toFixed(2)}</td>
+            <td>R$ ${despesa.valor_por_pessoa.toFixed(2)}</td>
+            <td>
+                <button onclick="editarDespesa(${despesa.id})">Editar</button>
+                <button onclick="excluirDespesa(${despesa.id})">Excluir</button>
+            </td>`;
+        tabelaHistorico.appendChild(linha);
     });
-
-// ==============================
-// FILTRAR POR DATA
-// ==============================
+}
 
 async function filtrarPorData() {
-
-    console.log("FUNÇÃO FILTRAR FOI CHAMADA");
-
-    const dataSelecionada = dataFiltro.value;
-    console.log("Data selecionada:", dataSelecionada);
-
-    if (dataSelecionada === "") {
-        alert("Selecione uma data.");
+    const dataSelecionada = dataFiltro?.value;
+    if (!dataSelecionada) {
+        mostrarAviso("Selecione uma data.");
         return;
     }
-
-    const usuarioId =
-    Number(localStorage.getItem("usuario_id"));
-
-const todasDespesas =
-    JSON.parse(localStorage.getItem("despesas")) || [];
-
-const despesasSalvas =
-    todasDespesas.filter(function(despesa) {
-        return despesa.usuario_id === usuarioId;
-    });
-
-    const despesasFiltradas =
-        despesasSalvas.filter(function(despesa) {
-            return despesa.data === dataSelecionada;
-        });
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const todasDespesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const despesasSalvas = todasDespesas.filter(d => d.usuario_id === usuarioId);
+    const despesasFiltradas = despesasSalvas.filter(d => d.data === dataSelecionada);
 
     tabelaHistorico.innerHTML = "";
-
     despesasFiltradas.forEach(function(despesa) {
-
         const linha = document.createElement("tr");
-
         linha.innerHTML = `
             <td>${despesa.data}</td>
             <td>${despesa.pessoas}</td>
@@ -77,938 +107,232 @@ const despesasSalvas =
             <td>R$ ${despesa.total.toFixed(2)}</td>
             <td>R$ ${despesa.valor_por_pessoa.toFixed(2)}</td>
             <td>
-                <button onclick="editarDespesa(${despesa.id})">
-                    Editar
-                </button>
-
-                <button onclick="excluirDespesa(${despesa.id})">
-                    Excluir
-                </button>
-            </td>
-        `;
-
+                <button onclick="editarDespesa(${despesa.id})">Editar</button>
+                <button onclick="excluirDespesa(${despesa.id})">Excluir</button>
+            </td>`;
         tabelaHistorico.appendChild(linha);
     });
-
     if (despesasFiltradas.length === 0) {
-        tabelaHistorico.innerHTML = `
-            <tr>
-                <td colspan="9">
-                    Nenhuma despesa encontrada nessa data.
-                </td>
-            </tr>
-        `;
+        tabelaHistorico.innerHTML = `<tr><td colspan="9">Nenhuma despesa encontrada nessa data.</td></tr>`;
     }
 }
 
-if (btnFiltrar) {
-
-    btnFiltrar.addEventListener("click", function() {
-        filtrarPorData();
-    });
-
-}
-
-if (btnLimparFiltro) {
-
-    btnLimparFiltro.addEventListener("click", function() {
-
-        dataFiltro.value = "";
-
-        carregarHistorico();
-
-    });
-
-}
-
-
-    // ==============================
-    // RESUMO DO HISTÓRICO
-    // ==============================
-
-    const totalGeral = despesasSalvas.reduce(function(total, despesa) {
-        return total + despesa.total;
-    }, 0);
-
-    const quantidadeRegistros = despesasSalvas.length;
-
-    const mediaDespesas =
-        quantidadeRegistros > 0
-            ? totalGeral / quantidadeRegistros
-            : 0;
-
-
-    document.querySelector("#totalGeral").textContent =
-        `R$ ${totalGeral.toFixed(2)}`;
-
-    document.querySelector("#quantidadeRegistros").textContent =
-        quantidadeRegistros;
-
-    document.querySelector("#mediaDespesas").textContent =
-        `R$ ${mediaDespesas.toFixed(2)}`;
-
-
-    // ==============================
-    // TABELA
-    // ==============================
-
-    tabelaHistorico.innerHTML = "";
-
-    despesasSalvas.forEach(function(despesa) {
-
-        const linha = document.createElement("tr");
-
-        linha.innerHTML = `
-            <td>${despesa.data}</td>
-            <td>${despesa.pessoas}</td>
-            <td>R$ ${despesa.aluguel.toFixed(2)}</td>
-            <td>R$ ${despesa.gas.toFixed(2)}</td>
-            <td>R$ ${despesa.energia.toFixed(2)}</td>
-            <td>R$ ${despesa.agua.toFixed(2)}</td>
-            <td>R$ ${despesa.total.toFixed(2)}</td>
-            <td>R$ ${despesa.valor_por_pessoa.toFixed(2)}</td>
-            <td>
-                <button onclick="editarDespesa(${despesa.id})">
-                    Editar
-                </button>
-
-                <button onclick="excluirDespesa(${despesa.id})">
-                    Excluir
-                </button>
-            </td>
-        `;
-
-        tabelaHistorico.appendChild(linha);
-    });
-}
+btnFiltrar?.addEventListener("click", () => filtrarPorData());
+btnLimparFiltro?.addEventListener("click", () => {
+    if(dataFiltro) dataFiltro.value = "";
+    carregarHistorico();
+});
 
 if (formulario) {
-
-    // ==============================
-    // CALCULAR E SALVAR DESPESA
-    // ==============================
-
     formulario.addEventListener("submit", async function(event) {
-
         event.preventDefault();
-
         const data = document.querySelector("#data").value;
+        const pessoas = Number(document.querySelector("#pessoas").value);
+        const aluguel = Number(document.querySelector("#aluguel").value);
+        const gas = Number(document.querySelector("#gas").value);
+        const energia = Number(document.querySelector("#energia").value);
+        const agua = Number(document.querySelector("#agua").value);
 
-        const pessoas =
-            Number(document.querySelector("#pessoas").value);
+        if (data === "") { mostrarAviso("Informe a data."); return; }
+        if (pessoas <= 0) { mostrarAviso("A quantidade de pessoas deve ser maior que zero."); return; }
 
-        const aluguel =
-            Number(document.querySelector("#aluguel").value);
-
-        const gas =
-            Number(document.querySelector("#gas").value);
-
-        const energia =
-            Number(document.querySelector("#energia").value);
-
-        const agua =
-            Number(document.querySelector("#agua").value);
-
-
-        // Validação
-
-        if (data === "") {
-            alert("Informe a data.");
-            return;
-        }
-
-        if (pessoas <= 0) {
-            alert("A quantidade de pessoas deve ser maior que zero.");
-            return;
-        }
-
-
-        // Calculando o total
-
-        const total =
-            aluguel +
-            gas +
-            energia +
-            agua;
-
-
-        // Calculando valor por pessoa
-
-        const valorPorPessoa =
-            total / pessoas;
-
-
-        // Mostrando resultado
+        const total = aluguel + gas + energia + agua;
+        const valorPorPessoa = total / pessoas;
 
         document.querySelector("#resultado").innerHTML = `
             <h2>Resultado</h2>
+            <p>Total: <strong>R$ ${total.toFixed(2)}</strong></p>
+            <p>Por pessoa: <strong>R$ ${valorPorPessoa.toFixed(2)}</strong></p>`;
 
-            <p>
-                Total das despesas:
-                <strong>R$ ${total.toFixed(2)}</strong>
-            </p>
-
-            <p>
-                Valor por pessoa:
-                <strong>R$ ${valorPorPessoa.toFixed(2)}</strong>
-            </p>
-        `;
-
-
-      // ==============================
-// SALVAR DESPESA LOCALMENTE
-// ==============================
-
-const usuarioId =
-    Number(localStorage.getItem("usuario_id"));
-
-const despesas =
-    JSON.parse(localStorage.getItem("despesas")) || [];
-
-const novaDespesa = {
-    id: Date.now(),
-    usuario_id: usuarioId,
-    data: data,
-    pessoas: pessoas,
-    aluguel: aluguel,
-    gas: gas,
-    energia: energia,
-    agua: agua,
-    total: total,
-    valor_por_pessoa: valorPorPessoa
-};
-
-despesas.push(novaDespesa);
-
-localStorage.setItem(
-    "despesas",
-    JSON.stringify(despesas)
-);
-
+        const usuarioId = Number(localStorage.getItem("usuario_id"));
+        const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+        const novaDespesa = { id: Date.now(), usuario_id: usuarioId, data, pessoas, aluguel, gas, energia, agua, total, valor_por_pessoa: valorPorPessoa };
+        despesas.push(novaDespesa);
+        localStorage.setItem("despesas", JSON.stringify(despesas));
+        carregarHistorico();
     });
-
 }
 
-if (tabelaHistorico) {
-    carregarHistorico();
-}
-
-// ==============================
-// EDITAR DESPESA
-// ==============================
+if (tabelaHistorico) carregarHistorico();
 
 function editarDespesa(id) {
-
-    const usuarioId =
-        Number(localStorage.getItem("usuario_id"));
-
-    const despesas =
-        JSON.parse(localStorage.getItem("despesas")) || [];
-
-    const despesa = despesas.find(function(despesa) {
-        return despesa.id === id &&
-               despesa.usuario_id === usuarioId;
-    });
-
-    if (!despesa) {
-        alert("Despesa não encontrada.");
-        return;
-    }
-
-    const novaData =
-        prompt("Data:", despesa.data);
-
-    if (novaData === null) {
-        return;
-    }
-
-    const novasPessoas =
-        Number(prompt("Quantidade de pessoas:", despesa.pessoas));
-
-    if (novasPessoas <= 0) {
-        alert("A quantidade de pessoas deve ser maior que zero.");
-        return;
-    }
-
-    const novoAluguel =
-        Number(prompt("Aluguel:", despesa.aluguel));
-
-    const novoGas =
-        Number(prompt("Gás:", despesa.gas));
-
-    const novaEnergia =
-        Number(prompt("Energia:", despesa.energia));
-
-    const novaAgua =
-        Number(prompt("Água:", despesa.agua));
-
-    const novoTotal =
-        novoAluguel +
-        novoGas +
-        novaEnergia +
-        novaAgua;
-
-    const novoValorPorPessoa =
-        novoTotal / novasPessoas;
-
-    despesa.data = novaData;
-    despesa.pessoas = novasPessoas;
-    despesa.aluguel = novoAluguel;
-    despesa.gas = novoGas;
-    despesa.energia = novaEnergia;
-    despesa.agua = novaAgua;
-    despesa.total = novoTotal;
-    despesa.valor_por_pessoa = novoValorPorPessoa;
-
-    localStorage.setItem(
-        "despesas",
-        JSON.stringify(despesas)
-    );
-
-    alert("Despesa editada com sucesso!");
-
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const despesa = despesas.find(d => d.id === id && d.usuario_id === usuarioId);
+    if (!despesa) { mostrarAviso("Despesa não encontrada."); return; }
+    const novaData = prompt("Data:", despesa.data);
+    if (novaData === null) return;
+    const novasPessoas = Number(prompt("Quantidade de pessoas:", despesa.pessoas));
+    if (novasPessoas <= 0) { mostrarAviso("A quantidade de pessoas deve ser maior que zero."); return; }
+    const novoAluguel = Number(prompt("Aluguel:", despesa.aluguel));
+    const novoGas = Number(prompt("Gás:", despesa.gas));
+    const novaEnergia = Number(prompt("Energia:", despesa.energia));
+    const novaAgua = Number(prompt("Água:", despesa.agua));
+    const novoTotal = novoAluguel + novoGas + novaEnergia + novaAgua;
+    despesa.data = novaData; despesa.pessoas = novasPessoas; despesa.aluguel = novoAluguel; despesa.gas = novoGas; despesa.energia = novaEnergia; despesa.agua = novaAgua; despesa.total = novoTotal; despesa.valor_por_pessoa = novoTotal / novasPessoas;
+    localStorage.setItem("despesas", JSON.stringify(despesas));
+    mostrarAviso("Despesa editada com sucesso!");
     location.reload();
 }
 
-// ==============================
-// EXCLUIR DESPESA
-// ==============================
+async function excluirDespesa(id) {
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const despesa = despesas.find(d => d.id === id && d.usuario_id === usuarioId);
+    if (!despesa) { mostrarAviso("Despesa não encontrada.", "Erro"); return; }
+    const confirmar = await mostrarConfirmacao(`Deseja excluir a despesa do dia ${despesa.data}?`, "Excluir despesa?");
+    if (!confirmar) return;
+    const novasDespesas = despesas.filter(d => d.id!== id);
+    localStorage.setItem("despesas", JSON.stringify(novasDespesas));
+    mostrarToast("Despesa excluída! 🗑️");
+    setTimeout(() => location.reload(), 800);
+}
 
-function excluirDespesa(id) {
+// Proteção, Login, Cadastro, etc com?.
+document.querySelector("#sistema") || document.querySelector("#historicoPagina")? (()=>{ if(localStorage.getItem("logado")!== "true") window.location.href = "index.html"; })() : null;
 
-    const usuarioId =
-        Number(localStorage.getItem("usuario_id"));
+document.querySelector("#formCadastro")?.addEventListener("submit", function(event) {
+    event.preventDefault();
+    const usuario = document.querySelector("#novoUsuario").value;
+    const senha = document.querySelector("#novaSenha").value;
+    const confirmarSenha = document.querySelector("#confirmarSenha").value;
+    if (senha!== confirmarSenha) { mostrarAviso("As senhas não são iguais.", "Atenção"); return; }
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    if (usuarios.find(u => u.usuario === usuario)) { mostrarAviso("Esse nome de usuário já existe. Tente outro nome.", "Usuário já cadastrado"); return; }
+    usuarios.push({ id: Date.now(), usuario, senha });
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    mostrarToast("Cadastro realizado! ✅");
+    setTimeout(() => window.location.href = "index.html", 1000);
+});
 
-    // Pega todas as despesas salvas
-    const despesas =
-        JSON.parse(localStorage.getItem("despesas")) || [];
+document.querySelector("#formLogin")?.addEventListener("submit", function(event) {
+    event.preventDefault();
+    const usuario = document.querySelector("#usuario").value;
+    const senha = document.querySelector("#senha").value;
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    const usuarioEncontrado = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+    if (!usuarioEncontrado) { mostrarAviso("Usuário ou senha incorretos.", "Erro"); return; }
+    localStorage.setItem("logado", "true");
+    localStorage.setItem("usuario_id", usuarioEncontrado.id);
+    mostrarToast("Login realizado! ✅");
+    setTimeout(() => window.location.href = "sistema.html", 800);
+});
 
-    // Procura a despesa do usuário
-    const despesa = despesas.find(function(despesa) {
-        return despesa.id === id &&
-               despesa.usuario_id === usuarioId;
-    });
-
-    if (!despesa) {
-        alert("Despesa não encontrada.");
-        return;
+document.querySelector("#logout")?.addEventListener("click", () => {
+    localStorage.removeItem("logado"); localStorage.removeItem("usuario_id");
+    window.location.href = "index.html";
+});
+document.querySelector("#btnSairConfiguracoes")?.addEventListener("click", () => {
+    localStorage.removeItem("logado"); localStorage.removeItem("usuario_id");
+    window.location.href = "index.html";
+});
+document.querySelector("#voltarSistema")?.addEventListener("click", () => window.location.href = "sistema.html");
+document.querySelector("#btnDashboard")?.addEventListener("click", () => window.location.href = "dashboard.html");
+document.querySelector("#btnTema")?.addEventListener("click", function() {
+    document.body.classList.toggle("tema-escuro");
+    if (document.body.classList.contains("tema-escuro")) {
+        localStorage.setItem("tema", "escuro"); this.textContent = "☀️ Tema claro";
+    } else {
+        localStorage.setItem("tema", "claro"); this.textContent = "🌙 Tema escuro";
     }
-
-    const confirmar = confirm(
-        `Deseja excluir a despesa do dia ${despesa.data}?\n\n` +
-        `Total: R$ ${despesa.total.toFixed(2)}\n` +
-        `Valor por pessoa: R$ ${despesa.valor_por_pessoa.toFixed(2)}`
-    );
-
-    if (!confirmar) {
-        return;
-    }
-
-    // Remove a despesa
-    const novasDespesas = despesas.filter(function(despesa) {
-        return despesa.id !== id;
-    });
-
-    // Salva novamente no localStorage
-    localStorage.setItem(
-        "despesas",
-        JSON.stringify(novasDespesas)
-    );
-
-    alert("Despesa excluída com sucesso!");
-
-    location.reload();
-}
-
-// ====================
-// PROTEGER PÁGINAS DO SISTEMA
-// ====================
-
-const paginaProtegida =
-    document.querySelector("#sistema") ||
-    document.querySelector("#historicoPagina");
-
-if (paginaProtegida) {
-
-    const logado = localStorage.getItem("logado");
-
-    if (logado !== "true") {
-        window.location.href = "index.html";
-    }
-}
-
-
-// ====================
-// CADASTRO
-// ====================
-
-const formCadastro =
-    document.querySelector("#formCadastro");
-
-if (formCadastro) {
-
-    formCadastro.addEventListener("submit", function(event) {
-
-        event.preventDefault();
-
-        const usuario =
-            document.querySelector("#novoUsuario").value;
-
-        const senha =
-            document.querySelector("#novaSenha").value;
-
-        const confirmarSenha =
-            document.querySelector("#confirmarSenha").value;
-
-        if (senha !== confirmarSenha) {
-            alert("As senhas não são iguais.");
-            return;
-        }
-
-        // Pega os usuários já cadastrados
-        const usuarios =
-            JSON.parse(localStorage.getItem("usuarios")) || [];
-
-        // Verifica se o usuário já existe
-        const usuarioExiste =
-            usuarios.find(function(usuarioSalvo) {
-                return usuarioSalvo.usuario === usuario;
-            });
-
-        if (usuarioExiste) {
-            alert("Esse usuário já está cadastrado.");
-            return;
-        }
-
-        // Cria o novo usuário
-        const novoUsuario = {
-            id: Date.now(),
-            usuario: usuario,
-            senha: senha
-        };
-
-        // Adiciona o usuário à lista
-        usuarios.push(novoUsuario);
-
-        // Salva no dispositivo
-        localStorage.setItem(
-            "usuarios",
-            JSON.stringify(usuarios)
-        );
-
-        alert("Cadastro realizado com sucesso!");
-
-        window.location.href = "index.html";
-    });
-}
-
-
-// ====================
-// LOGIN
-// ====================
-
-const formLogin =
-    document.querySelector("#formLogin");
-
-if (formLogin) {
-
-    formLogin.addEventListener("submit", function(event) {
-
-        event.preventDefault();
-
-        const usuario =
-            document.querySelector("#usuario").value;
-
-        const senha =
-            document.querySelector("#senha").value;
-
-        // Pega os usuários cadastrados no dispositivo
-        const usuarios =
-            JSON.parse(localStorage.getItem("usuarios")) || [];
-
-        // Procura o usuário
-        const usuarioEncontrado =
-            usuarios.find(function(usuarioSalvo) {
-                return usuarioSalvo.usuario === usuario &&
-                       usuarioSalvo.senha === senha;
-            });
-
-        // Verifica se encontrou
-        if (!usuarioEncontrado) {
-            alert("Usuário ou senha incorretos.");
-            return;
-        }
-
-        // Salva quem está logado
-        localStorage.setItem("logado", "true");
-        localStorage.setItem(
-            "usuario_id",
-            usuarioEncontrado.id
-        );
-
-        window.location.href = "sistema.html";
-    });
-}
-
-// ====================
-// LOGOUT
-// ====================
-
-const botaoLogout = document.querySelector("#logout");
-
-if (botaoLogout) {
-
-    botaoLogout.addEventListener("click", function() {
-
-        localStorage.removeItem("logado");
-        localStorage.removeItem("usuario_id");
-
-        window.location.href = "index.html";
-
-    });
-
-}
-
-// ==============================
-// SAIR PELO MENU DE CONFIGURAÇÕES
-// ==============================
-
-const btnSairConfiguracoes =
-    document.querySelector("#btnSairConfiguracoes");
-
-if (btnSairConfiguracoes) {
-    btnSairConfiguracoes.addEventListener("click", function() {
-
-        localStorage.removeItem("logado");
-        localStorage.removeItem("usuario_id");
-
-        window.location.href = "index.html";
-    });
-}
-
-// ====================
-// VOLTAR PARA O SISTEMA
-// ====================
-
-const voltarSistema = document.querySelector("#voltarSistema");
-
-if (voltarSistema) {
-
-    voltarSistema.addEventListener("click", function() {
-
-        window.location.href = "sistema.html";
-
-    });
-
-}
-
-// ====================
-// TEMA CLARO / ESCURO
-// ====================
-
+});
 const temaSalvo = localStorage.getItem("tema");
-
-if (temaSalvo === "escuro") {
-    document.body.classList.add("tema-escuro");
-}
-
-// ====================
-// ALTERNAR TEMA
-// ====================
-
-const btnTema = document.querySelector("#btnTema");
-
-if (btnTema) {
-    btnTema.addEventListener("click", function() {
-
-        document.body.classList.toggle("tema-escuro");
-
-        if (document.body.classList.contains("tema-escuro")) {
-            localStorage.setItem("tema", "escuro");
-            btnTema.textContent = "☀️ Tema claro";
-        } else {
-            localStorage.setItem("tema", "claro");
-            btnTema.textContent = "🌙 Tema escuro";
-        }
-
-    });
-}
-
-// ====================
-// MOSTRAR NOME DO USUÁRIO
-// ====================
+if (temaSalvo === "escuro") document.body.classList.add("tema-escuro");
 
 const nomeUsuario = document.querySelector("#nomeUsuario");
-
 if (nomeUsuario) {
     const usuarioId = Number(localStorage.getItem("usuario_id"));
-
-    const usuarios =
-        JSON.parse(localStorage.getItem("usuarios")) || [];
-
-    const usuarioLogado = usuarios.find(function(usuario) {
-        return usuario.id === usuarioId;
-    });
-
+    const usuarios = JSON.parse(localStorage.getItem("usuarios")) || [];
+    const usuarioLogado = usuarios.find(u => u.id === usuarioId);
     if (usuarioLogado) {
-    nomeUsuario.textContent = usuarioLogado.usuario;
-
-    const usuarioConfiguracao =
-        document.querySelector("#usuarioConfiguracao");
-
-    if (usuarioConfiguracao) {
-        usuarioConfiguracao.textContent =
-            usuarioLogado.usuario;
+        nomeUsuario.textContent = usuarioLogado.usuario;
+        const elConf = document.querySelector("#usuarioConfiguracao");
+        if(elConf) elConf.textContent = usuarioLogado.usuario;
     }
 }
-}
 
-// ====================
-// MENU DE CONFIGURAÇÕES
-// ====================
+document.querySelector("#btnConfiguracoes")?.addEventListener("click", () => {
+    const menu = document.querySelector("#menuConfiguracoes");
+    if(menu) menu.style.display = "flex";
+});
+document.querySelector("#btnFecharConfiguracoes")?.addEventListener("click", () => {
+    const menu = document.querySelector("#menuConfiguracoes");
+    if(menu) menu.style.display = "none";
+});
+document.querySelector("#btnExcluirHistorico")?.addEventListener("click", async function() {
+    const confirmar = await mostrarConfirmacao("Tem certeza que deseja excluir todo o histórico?", "Excluir tudo?");
+    if (!confirmar) return;
+    localStorage.removeItem("despesas");
+    mostrarToast("Histórico excluído! 🗑️");
+    setTimeout(() => location.reload(), 800);
+});
+document.querySelector("#btnExportarDados")?.addEventListener("click", function() {
+    const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    if (despesas.length === 0) { mostrarAviso("Não há despesas para exportar.", "Aviso"); return; }
+    const dados = JSON.stringify(despesas, null, 2);
+    const arquivo = new Blob([dados], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(arquivo);
+    const link = document.createElement("a");
+    link.href = url; link.download = "despesas-backup.json"; link.click();
+    URL.revokeObjectURL(url);
+    mostrarToast("Dados exportados! 📁");
+});
 
-const btnConfiguracoes =
-    document.querySelector("#btnConfiguracoes");
-
-const menuConfiguracoes =
-    document.querySelector("#menuConfiguracoes");
-
-const btnFecharConfiguracoes =
-    document.querySelector("#btnFecharConfiguracoes");
-
-if (btnConfiguracoes && menuConfiguracoes) {
-
-    btnConfiguracoes.addEventListener("click", function() {
-        menuConfiguracoes.style.display = "flex";
-    });
-}
-
-if (btnFecharConfiguracoes && menuConfiguracoes) {
-
-    btnFecharConfiguracoes.addEventListener("click", function() {
-        menuConfiguracoes.style.display = "none";
-    });
-}
-
-// ==============================
-// EXCLUIR HISTÓRICO
-// ==============================
-
-const btnExcluirHistorico =
-    document.querySelector("#btnExcluirHistorico");
-
-if (btnExcluirHistorico) {
-    btnExcluirHistorico.addEventListener("click", function() {
-
-        const confirmar = confirm(
-            "Tem certeza que deseja excluir todo o histórico de despesas?"
-        );
-
-        if (!confirmar) {
-            return;
-        }
-
-        localStorage.removeItem("despesas");
-
-        alert("Histórico excluído com sucesso!");
-
-        location.reload();
-    });
-}
-
-// ==============================
-// EXPORTAR DADOS
-// ==============================
-
-const btnExportarDados =
-    document.querySelector("#btnExportarDados");
-
-if (btnExportarDados) {
-    btnExportarDados.addEventListener("click", function() {
-
-        const despesas =
-            JSON.parse(localStorage.getItem("despesas")) || [];
-
-        const dados = JSON.stringify(despesas, null, 2);
-
-        const arquivo = new Blob(
-            [dados],
-            { type: "application/json;charset=utf-8" }
-        );
-
-        const url = URL.createObjectURL(arquivo);
-
-        const link = document.createElement("a");
-
-        link.href = url;
-        link.download = "despesas-backup.json";
-
-        link.click();
-
-        URL.revokeObjectURL(url);
-
-        alert("Dados exportados com sucesso!");
-    });
-}
-
-// ==============================
-// IMPORTAR DADOS - CORRIGIDO COM USUARIO_ID
-// ==============================
-
-const btnImportarDados =
-    document.querySelector("#btnImportarDados");
-
-const arquivoImportacao =
-    document.querySelector("#arquivoImportacao");
-
+const btnImportarDados = document.querySelector("#btnImportarDados");
+const arquivoImportacao = document.querySelector("#arquivoImportacao");
 if (btnImportarDados && arquivoImportacao) {
-
-    btnImportarDados.addEventListener("click", function() {
-        arquivoImportacao.click();
-    });
-
+    btnImportarDados.addEventListener("click", () => arquivoImportacao.click());
     arquivoImportacao.addEventListener("change", function() {
-
-        const arquivo = arquivoImportacao.files[0];
-        if (!arquivo) return;
-
+        const arquivo = arquivoImportacao.files[0]; if (!arquivo) return;
         const leitor = new FileReader();
-
-        leitor.onload = function(evento) {
+        leitor.onload = async function(evento) {
             try {
                 let texto = evento.target.result.replace(/^\uFEFF/, '').trim();
-                if (!texto) throw new Error("Arquivo vazio");
-
                 const despesasImportadas = JSON.parse(texto);
-
-                if (!Array.isArray(despesasImportadas)) {
-                    throw new Error("Formato inválido");
-                }
-
-                // PEGA O ID DO USUÁRIO LOGADO AGORA
                 const usuarioIdAtual = Number(localStorage.getItem("usuario_id"));
-
-                if (!usuarioIdAtual) {
-                    alert("Você precisa estar logado para importar.");
-                    return;
-                }
-
-                const confirmar = confirm(
-                    `Encontradas ${despesasImportadas.length} despesas. Importar? Elas vão aparecer para o seu usuário atual.`
-                );
-
-                if (!confirmar) {
-                    arquivoImportacao.value = "";
-                    return;
-                }
-
-                // CORRIGE O usuario_id de todas as despesas importadas
-                const despesasCorrigidas = despesasImportadas.map(function(d) {
-                    return {
-                       ...d,
-                        id: d.id || Date.now() + Math.random(),
-                        usuario_id: usuarioIdAtual // força ser do usuário logado
-                    };
-                });
-
-                // MESCLA com as que já existem, em vez de apagar tudo
+                if (!usuarioIdAtual) { mostrarAviso("Você precisa estar logado.", "Erro"); return; }
+                const confirmar = await mostrarConfirmacao(`Encontradas ${despesasImportadas.length} despesas. Importar?`, "Importar dados?");
+                if (!confirmar) { arquivoImportacao.value = ""; return; }
+                const despesasCorrigidas = despesasImportadas.map(d => ({...d, id: d.id || Date.now() + Math.random(), usuario_id: usuarioIdAtual }));
                 const despesasAtuais = JSON.parse(localStorage.getItem("despesas")) || [];
                 const todas = [...despesasAtuais,...despesasCorrigidas];
-
-                // Remove duplicadas pelo ID
                 const unicas = Array.from(new Map(todas.map(d => [d.id, d])).values());
-
                 localStorage.setItem("despesas", JSON.stringify(unicas));
-
-                alert(`Dados importados com sucesso! ${despesasCorrigidas.length} despesas adicionadas.`);
-                location.reload();
-
+                mostrarToast(`Importado! ${despesasCorrigidas.length} despesas ✅`);
+                setTimeout(() => location.reload(), 1000);
             } catch (erro) {
-                console.error(erro);
-                alert("Erro ao importar: " + erro.message);
+                mostrarAviso("Erro ao importar: " + erro.message, "Erro");
                 arquivoImportacao.value = "";
             }
         };
-
         leitor.readAsText(arquivo, 'UTF-8');
     });
 }
 
-// ==============================
-// BAIXAR HISTÓRICO EM PDF
-// ==============================
-
-const btnBaixarPDF =
-    document.querySelector("#btnBaixarPDF");
-
-if (btnBaixarPDF) {
-
-    btnBaixarPDF.addEventListener("click", function() {
-
-        const usuarioId =
-            Number(localStorage.getItem("usuario_id"));
-
-        const despesas =
-            JSON.parse(localStorage.getItem("despesas")) || [];
-
-        const minhasDespesas =
-            despesas.filter(function(despesa) {
-                return despesa.usuario_id === usuarioId;
-            });
-
-        if (minhasDespesas.length === 0) {
-            alert("Não existem despesas para gerar o PDF.");
-            return;
-        }
-
-        const { jsPDF } = window.jspdf;
-
-        const pdf = new jsPDF();
-
-        // CABEÇALHO PROFISSIONAL
-
-pdf.setFontSize(20);
-pdf.setFont("helvetica", "bold");
-pdf.text("Divisão de Despesas da Casa", 20, 20);
-
-pdf.setFontSize(14);
-pdf.setFont("helvetica", "normal");
-pdf.text("Histórico de Despesas", 20, 29);
-
-pdf.setFontSize(10);
-pdf.text(
-    `Total de registros: ${minhasDespesas.length}`,
-    20,
-    38
-);
-
-pdf.text(
-    `Relatório gerado em: ${new Date().toLocaleDateString("pt-BR")}`,
-    20,
-    45
-);
-
-pdf.setDrawColor(150);
-pdf.line(20, 52, 190, 52);
-
-let y = 58;
-
-        // TABELA
-pdf.autoTable({
-    startY: y,
-    head: [[
-        "Data",
-        "Pessoas",
-        "Aluguel",
-        "Gás",
-        "Energia",
-        "Água",
-        "Total",
-        "Por pessoa"
-    ]],
-    body: minhasDespesas.map(function(despesa) {
-        return [
-            despesa.data.split("-").reverse().join("/"),
-            despesa.pessoas,
-            `R$ ${Number(despesa.aluguel).toFixed(2)}`,
-            `R$ ${Number(despesa.gas).toFixed(2)}`,
-            `R$ ${Number(despesa.energia).toFixed(2)}`,
-            `R$ ${Number(despesa.agua).toFixed(2)}`,
-            `R$ ${Number(despesa.total).toFixed(2)}`,
-            `R$ ${Number(despesa.valor_por_pessoa).toFixed(2)}`
-        ];
-    }),
-    styles: {
-    fontSize: 8,
-    cellPadding: 4,
-    lineWidth: 0.1,
-    halign: "center",
-    valign: "middle"
-    },
-    headStyles: {
-    fontSize: 8,
-    fontStyle: "bold",
-    halign: "center",
-    valign: "middle"
-    },
-    margin: {
-        left: 10,
-        right: 10
-    }
-});
-
-y = pdf.lastAutoTable.finalY + 15;
-
-       
-
-        // RESUMO
-        const totalGeral =
-            minhasDespesas.reduce(function(total, despesa) {
-                return total + Number(despesa.total);
-            }, 0);
-
-        y += 10;
-
-        if (y > 250) {
-            pdf.addPage();
-            y = 20;
-        }
-
-        // RESUMO
-pdf.setFontSize(16);
-pdf.text("Resumo das despesas", 20, y);
-
-y += 5;
-
-pdf.autoTable({
-    startY: y,
-    body: [
-        ["Total geral", `R$ ${totalGeral.toFixed(2)}`],
-    ],
-    styles: {
-        fontSize: 11,
-        cellPadding: 5
-    },
-    columnStyles: {
-        0: {
-            fontStyle: "bold"
-        },
-        1: {
-            halign: "right"
-        }
-    },
-    margin: {
-        left: 20,
-        right: 20
-    }
-});
-
-        // RODAPÉ COM NÚMERO DA PÁGINA
-
-const totalPaginas = pdf.internal.getNumberOfPages();
-
-for (let pagina = 1; pagina <= totalPaginas; pagina++) {
-
-    pdf.setPage(pagina);
-
-    pdf.setFontSize(9);
-
-    pdf.text(
-        `Página ${pagina} de ${totalPaginas}`,
-        105,
-        290,
-        { align: "center" }
-    );
-}
-
-pdf.save("historico-despesas.pdf");
-
-        
+document.querySelector("#btnBaixarPDF")?.addEventListener("click", function() {
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const minhasDespesas = despesas.filter(d => d.usuario_id === usuarioId);
+    if (minhasDespesas.length === 0) { mostrarAviso("Não existem despesas para gerar o PDF."); return; }
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    pdf.setFontSize(20); pdf.setFont("helvetica", "bold"); pdf.text("Divisão de Despesas da Casa", 20, 20);
+    pdf.setFontSize(14); pdf.setFont("helvetica", "normal"); pdf.text("Histórico de Despesas", 20, 29);
+    pdf.setFontSize(10); pdf.text(`Total: ${minhasDespesas.length}`, 20, 38); pdf.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 20, 45);
+    pdf.setDrawColor(150); pdf.line(20, 52, 190, 52);
+    let y = 58;
+    pdf.autoTable({
+        startY: y,
+        head: [["Data","Pessoas","Aluguel","Gás","Energia","Água","Total","Por pessoa"]],
+        body: minhasDespesas.map(d => [d.data.split("-").reverse().join("/"), d.pessoas, `R$ ${Number(d.aluguel).toFixed(2)}`, `R$ ${Number(d.gas).toFixed(2)}`, `R$ ${Number(d.energia).toFixed(2)}`, `R$ ${Number(d.agua).toFixed(2)}`, `R$ ${Number(d.total).toFixed(2)}`, `R$ ${Number(d.valor_por_pessoa).toFixed(2)}`]),
+        styles: { fontSize: 8, cellPadding: 4, halign: "center" }, margin: { left: 10, right: 10 }
     });
-}
-
-document.querySelector("#btnDashboard").addEventListener("click", function() {
-
-    window.location.href = "dashboard.html";
-
+    y = pdf.lastAutoTable.finalY + 15;
+    const totalGeral = minhasDespesas.reduce((total, d) => total + Number(d.total), 0);
+    if (y > 250) { pdf.addPage(); y = 20; }
+    pdf.setFontSize(16); pdf.text("Resumo das despesas", 20, y); y += 5;
+    pdf.autoTable({ startY: y, body: [["Total geral", `R$ ${totalGeral.toFixed(2)}`]], styles: { fontSize: 11, cellPadding: 5 }, margin: { left: 20, right: 20 } });
+    const totalPaginas = pdf.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPaginas; p++) { pdf.setPage(p); pdf.setFontSize(9); pdf.text(`Página ${p} de ${totalPaginas}`, 105, 290, { align: "center" }); }
+    pdf.save("historico-despesas.pdf");
 });
