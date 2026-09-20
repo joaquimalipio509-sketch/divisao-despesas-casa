@@ -733,7 +733,7 @@ if (btnExportarDados) {
 
         const arquivo = new Blob(
             [dados],
-            { type: "application/json" }
+            { type: "application/json;charset=utf-8" }
         );
 
         const url = URL.createObjectURL(arquivo);
@@ -752,7 +752,7 @@ if (btnExportarDados) {
 }
 
 // ==============================
-// IMPORTAR DADOS
+// IMPORTAR DADOS - CORRIGIDO
 // ==============================
 
 const btnImportarDados =
@@ -775,21 +775,30 @@ if (btnImportarDados && arquivoImportacao) {
             return;
         }
 
+        // 1. Valida se é JSON mesmo (WhatsApp às vezes renomeia)
+        if (!arquivo.name.toLowerCase().endsWith('.json') && arquivo.type!== 'application/json') {
+            // deixa passar mesmo assim, só avisa no console
+            console.log("Aviso: arquivo não termina com.json:", arquivo.name);
+        }
+
         const leitor = new FileReader();
 
         leitor.onload = function(evento) {
 
             try {
+                // 2. CORREÇÃO PRINCIPAL: remove o BOM e espaços que o Android coloca
+                let texto = evento.target.result.replace(/^\uFEFF/, '').trim();
 
-                const despesasImportadas =
-                    JSON.parse(evento.target.result);
+                if (!texto) throw new Error("Arquivo vazio");
+
+                const despesasImportadas = JSON.parse(texto);
 
                 if (!Array.isArray(despesasImportadas)) {
-                    throw new Error("Formato inválido");
+                    throw new Error("Formato inválido - esperava uma lista de despesas");
                 }
 
                 const confirmar = confirm(
-                    "Importar este arquivo substituirá o histórico atual de despesas. Deseja continuar?"
+                    `Encontradas ${despesasImportadas.length} despesas. Importar este arquivo substituirá o histórico atual. Deseja continuar?`
                 );
 
                 if (!confirmar) {
@@ -803,21 +812,25 @@ if (btnImportarDados && arquivoImportacao) {
                 );
 
                 alert("Dados importados com sucesso!");
-
                 location.reload();
 
             } catch (erro) {
-
-                alert(
-                    "Não foi possível importar o arquivo. Verifique se ele é um backup válido."
-                );
+                // 3. AGORA mostra o erro real pra você debugar
+                console.error(erro);
+                alert("Erro ao importar: " + erro.message);
+                arquivoImportacao.value = "";
             }
         };
 
-        leitor.readAsText(arquivo);
+        leitor.onerror = function() {
+            alert("Erro ao ler o arquivo");
+            arquivoImportacao.value = "";
+        };
+
+        // 4. CORREÇÃO: força UTF-8 (resolve problema com ç, ã, R$)
+        leitor.readAsText(arquivo, 'UTF-8');
     });
 }
-
 // ==============================
 // BAIXAR HISTÓRICO EM PDF
 // ==============================
