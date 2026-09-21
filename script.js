@@ -1,6 +1,16 @@
 // ==============================
-// SISTEMA DE DESPESAS - CORRIGIDO
+// SISTEMA DE DESPESAS - CORRIGIDO CELULAR
 // ==============================
+
+// LIMPEZA AUTOMÁTICA PARA CELULAR - remove despesas sem usuario_id
+(function limparFantasmas(){
+  let todas = JSON.parse(localStorage.getItem("despesas")) || [];
+  let limpas = todas.filter(d => d.usuario_id);
+  if(todas.length!== limpas.length){
+    localStorage.setItem("despesas", JSON.stringify(limpas));
+    console.log(`Limpas ${todas.length - limpas.length} despesas fantasmas`);
+  }
+})();
 
 const formulario = document.querySelector("#despesas form");
 const tabelaHistorico = document.querySelector("#historico tbody");
@@ -47,22 +57,18 @@ function mostrarToast(texto) {
 
 async function carregarHistorico() {
     if (!tabelaHistorico) return;
-
     const usuarioId = Number(localStorage.getItem("usuario_id"));
     const todasDespesas = JSON.parse(localStorage.getItem("despesas")) || [];
     const despesasSalvas = todasDespesas.filter(d => d.usuario_id === usuarioId);
-
     const totalGeral = despesasSalvas.reduce((total, d) => total + d.total, 0);
     const quantidadeRegistros = despesasSalvas.length;
     const mediaDespesas = quantidadeRegistros > 0? totalGeral / quantidadeRegistros : 0;
-
     const elTotal = document.querySelector("#totalGeral");
     if(elTotal) elTotal.textContent = `R$ ${totalGeral.toFixed(2)}`;
     const elQtd = document.querySelector("#quantidadeRegistros");
     if(elQtd) elQtd.textContent = quantidadeRegistros;
     const elMedia = document.querySelector("#mediaDespesas");
     if(elMedia) elMedia.textContent = `R$ ${mediaDespesas.toFixed(2)}`;
-
     tabelaHistorico.innerHTML = "";
     despesasSalvas.forEach(function(despesa) {
         const linha = document.createElement("tr");
@@ -93,7 +99,6 @@ async function filtrarPorData() {
     const todasDespesas = JSON.parse(localStorage.getItem("despesas")) || [];
     const despesasSalvas = todasDespesas.filter(d => d.usuario_id === usuarioId);
     const despesasFiltradas = despesasSalvas.filter(d => d.data === dataSelecionada);
-
     tabelaHistorico.innerHTML = "";
     despesasFiltradas.forEach(function(despesa) {
         const linha = document.createElement("tr");
@@ -132,18 +137,14 @@ if (formulario) {
         const gas = Number(document.querySelector("#gas").value);
         const energia = Number(document.querySelector("#energia").value);
         const agua = Number(document.querySelector("#agua").value);
-
         if (data === "") { mostrarAviso("Informe a data."); return; }
         if (pessoas <= 0) { mostrarAviso("A quantidade de pessoas deve ser maior que zero."); return; }
-
         const total = aluguel + gas + energia + agua;
         const valorPorPessoa = total / pessoas;
-
         document.querySelector("#resultado").innerHTML = `
             <h2>Resultado</h2>
             <p>Total: <strong>R$ ${total.toFixed(2)}</strong></p>
             <p>Por pessoa: <strong>R$ ${valorPorPessoa.toFixed(2)}</strong></p>`;
-
         const usuarioId = Number(localStorage.getItem("usuario_id"));
         const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
         const novaDespesa = { id: Date.now(), usuario_id: usuarioId, data, pessoas, aluguel, gas, energia, agua, total, valor_por_pessoa: valorPorPessoa };
@@ -188,7 +189,6 @@ async function excluirDespesa(id) {
     setTimeout(() => location.reload(), 800);
 }
 
-// Proteção, Login, Cadastro, etc com?.
 document.querySelector("#sistema") || document.querySelector("#historicoPagina")? (()=>{ if(localStorage.getItem("logado")!== "true") window.location.href = "index.html"; })() : null;
 
 document.querySelector("#formCadastro")?.addEventListener("submit", function(event) {
@@ -262,14 +262,34 @@ document.querySelector("#btnFecharConfiguracoes")?.addEventListener("click", () 
 document.querySelector("#btnExcluirHistorico")?.addEventListener("click", async function() {
     const confirmar = await mostrarConfirmacao("Tem certeza que deseja excluir todo o histórico?", "Excluir tudo?");
     if (!confirmar) return;
-    localStorage.removeItem("despesas");
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const todas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const minhas = todas.filter(d => d.usuario_id!== usuarioId);
+    // só apaga as minhas, não apaga de outros
+    if(todas.length === minhas.length) {
+       // se não tinha usuario_id, limpa tudo mesmo
+       localStorage.removeItem("despesas");
+    } else {
+       localStorage.setItem("despesas", JSON.stringify(minhas));
+       // na verdade queremos manter as minhas? corrigindo:
+       // O botão excluir historico deve apagar SÓ do usuario logado
+       const todas2 = JSON.parse(localStorage.getItem("despesas")) || [];
+       // refaz certo:
+    }
+    // correção final simples:
+    const todasFinal = JSON.parse(localStorage.getItem("despesas")) || [];
+    const manterOutros = todasFinal.filter(d => d.usuario_id!== usuarioId);
+    localStorage.setItem("despesas", JSON.stringify(manterOutros));
     mostrarToast("Histórico excluído! 🗑️");
     setTimeout(() => location.reload(), 800);
 });
+
 document.querySelector("#btnExportarDados")?.addEventListener("click", function() {
-    const despesas = JSON.parse(localStorage.getItem("despesas")) || [];
-    if (despesas.length === 0) { mostrarAviso("Não há despesas para exportar.", "Aviso"); return; }
-    const dados = JSON.stringify(despesas, null, 2);
+    const usuarioId = Number(localStorage.getItem("usuario_id"));
+    const todasDespesas = JSON.parse(localStorage.getItem("despesas")) || [];
+    const minhasDespesas = todasDespesas.filter(d => d.usuario_id === usuarioId);
+    if (minhasDespesas.length === 0) { mostrarAviso("Não há despesas para exportar.", "Aviso"); return; }
+    const dados = JSON.stringify(minhasDespesas, null, 2);
     const arquivo = new Blob([dados], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(arquivo);
     const link = document.createElement("a");
