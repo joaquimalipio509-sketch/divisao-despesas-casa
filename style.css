@@ -470,16 +470,22 @@ body.tema-escuro #login {
 }
 
 #btnFecharConfiguracoes {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    background-color: #e74c3c;
-    color: white;
-    cursor: pointer;
+  background: #e53935 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 20px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin: 12px auto 0 auto !important;
+  width: auto !important;
+  min-width: 90px;
+  cursor: pointer;
 }
 
 #btnFecharConfiguracoes:hover {
-    background-color: #c0392b;
+  background: #c62828 !important;
 }
 
 /* MENU DE CONFIGURAÇÕES NO TEMA ESCURO */
@@ -706,3 +712,83 @@ body.tema-escuro #dashboard .grafico-dashboard {
 body.tema-escuro .modal-caixa { background: #1e1e1e; color: #f5f5f5; border-top-color: #2f80ed; }
 body.tema-escuro .modal-caixa p { color: #ccc; }
 body.tema-escuro #modalBtnCancelar { background: #2b2b2b; color: #fff; }
+
+/* CONFIGURAÇÕES - DESIGN PRO */
+#menuConfiguracoes {
+  backdrop-filter: blur(8px);
+}
+
+#menuConfiguracoes > div {
+  border-radius: 20px !important;
+  padding: 28px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25) !important;
+  max-width: 380px;
+  width: 90%;
+}
+
+#btnTema {
+  background: #0ea5e9 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  padding: 14px !important;
+  font-weight: 600 !important;
+  width: 100%;
+}
+
+/* ===== BOTÕES DE DADOS - DESIGN BONITO ===== */
+#btnExportarDados,
+#btnImportarDados,
+#btnExcluirHistorico,
+#btnBaixarPDF {
+  width: 100% !important;
+  padding: 14px 18px !important;
+  border-radius: 12px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-bottom: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+#btnExportarDados {
+  background: #2563eb !important;
+  color: white !important;
+  border: none !important;
+}
+#btnExportarDados:hover {
+  background: #1d4ed8 !important;
+  transform: translateY(-1px);
+}
+
+#btnImportarDados {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+#btnImportarDados:hover {
+  background: #e2e8f0 !important;
+}
+
+#btnBaixarPDF {
+  background: #16a34a !important;
+  color: white !important;
+  border: none !important;
+}
+#btnBaixarPDF:hover {
+  background: #15803d !important;
+  transform: translateY(-1px);
+}
+
+#btnExcluirHistorico {
+  background: #fff1f2 !important;
+  color: #e11d48 !important;
+  border: 1px solid #fecdd3 !important;
+  margin-top: 8px !important;
+}
+#btnExcluirHistorico:hover {
+  background: #ffe4e6 !important;
+}
