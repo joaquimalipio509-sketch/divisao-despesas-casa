@@ -356,3 +356,8 @@ document.querySelector("#btnBaixarPDF")?.addEventListener("click", function() {
     for (let p = 1; p <= totalPaginas; p++) { pdf.setPage(p); pdf.setFontSize(9); pdf.text(`Página ${p} de ${totalPaginas}`, 105, 290, { align: "center" }); }
     pdf.save("historico-despesas.pdf");
 });
+
+// ABRIR DASHBOARD
+document.querySelector("#btnAbrirDashboard")?.addEventListener("click", function() {
+  window.location.href = "dashboard.html";
+});
